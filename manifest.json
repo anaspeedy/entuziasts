@@ -1,0 +1,20 @@
+{
+    "name": "Энтузиасты",
+    "short_name": "Энтузиасты",
+    "start_url": "./index.html",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#e0e0e0",
+    "icons": [
+        {
+            "src": "forv.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "forv.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}
