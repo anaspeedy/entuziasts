@@ -56,6 +56,71 @@ function renderIdeas(data){
     ideasList.appendChild(card);
   });
 }
+// --- Статистика по темам ---
+function renderTopicStats(ideas) {
+    let html = "<tr><th>Тема</th><th>Количество постов</th></tr>";
+    const counts = {};
+    ideas.forEach(idea => {
+        if (!counts[idea.theme]) counts[idea.theme] = 0;
+        counts[idea.theme]++;
+    });
+    Object.entries(counts).forEach(([theme, count]) => {
+        html += `<tr><td>${theme}</td><td>${count}</td></tr>`;
+    });
+    document.getElementById("topicStats").innerHTML = html;
+}
+
+// --- Статистика по времени публикаций ---
+function renderTimeStats(ideas) {
+    let html = "<tr><th>Временной слот</th><th>Количество публикаций</th></tr>";
+    const buckets = {"06:00–12:00":0,"12:00–18:00":0,"18:00–00:00":0,"00:00–06:00":0};
+    ideas.forEach(i => {
+        if (!i.time) return;
+        const [h] = i.time.split(":").map(Number);
+        if (h >=6 && h<12) buckets["06:00–12:00"]++;
+        else if (h>=12 && h<18) buckets["12:00–18:00"]++;
+        else if (h>=18 && h<24) buckets["18:00–00:00"]++;
+        else buckets["00:00–06:00"]++;
+    });
+    Object.entries(buckets).forEach(([slot, count]) => {
+        html += `<tr><td>${slot}</td><td>${count}</td></tr>`;
+    });
+    document.getElementById("timeStats").innerHTML = html;
+}
+
+// --- Автоматическая оценка эффективности ---
+function renderScoreStats(stats) {
+    let html = "<tr><th>Название поста</th><th>Оценка</th><th>Эффективность</th></tr>";
+    stats.forEach(s => {
+        if (!s.views || !s.likes) return;
+        const ratio = (s.likes / s.views) * 100;
+        const score = Math.min(10,(ratio/2).toFixed(1));
+        let level="Средний", cls="score-medium";
+        if (score>=8){level="Вирусный"; cls="score-high";}
+        else if(score<=3){level="Слабый"; cls="score-low";}
+        html += `<tr>
+            <td>${s.title}</td>
+            <td>${score}/10</td>
+            <td class="${cls}">${level}</td>
+        </tr>`;
+    });
+    document.getElementById("scoreStats").innerHTML = html;
+}
+
+onValue(ideasRef, snapshot=>{
+    const ideas=[];
+    snapshot.forEach(c=>ideas.push(c.val()));
+    renderIdeas(ideas);
+    renderTopicStats(ideas);
+    renderTimeStats(ideas);
+});
+
+// Статистика постов (лайки/просмотры)
+onValue(statsRef, snapshot=>{
+    const stats=[];
+    snapshot.forEach(c=>stats.push(c.val()));
+    renderScoreStats(stats);
+});
 
 // submit new idea
 ideaForm.addEventListener('submit', e=>{
