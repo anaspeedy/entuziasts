@@ -1,19 +1,23 @@
 :root{
   --bg:#f5f5f5;
   --card-border:#111;
-  --soft-red:#ffd5d5;
-  --soft-yellow:#fff5d2;
-  --soft-green:#d8f5d2;
+  --red:#ffd5d5;     /* Отложено — красный (мягкий) */
+  --yellow:#fff5d2;  /* В процессе — желтый (мягкий) */
+  --green:#d8f5d2;   /* Опубликовано — зеленый (мягкий) */
 }
 
+/* reset small */
 *{box-sizing:border-box}
+html,body{height:100%}
 body{
   margin:0;
   font-family: 'Montserrat', sans-serif;
   background:var(--bg);
   color:#222;
+  overflow-x:hidden;
 }
 
+/* header */
 .header{
   display:flex;
   align-items:center;
@@ -33,18 +37,22 @@ body{
   margin-left:10px;padding:8px 12px;border:2px solid #000;background:#fff;cursor:pointer;
 }
 
+/* container */
 .container{max-width:1100px;margin:18px auto;padding:0 14px}
 
+/* sections */
 .section{display:none}
 .section.active{display:block}
 
+/* forms */
 .form-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
 .form-row input,.form-row select,.form-row textarea{padding:8px;border:1px solid #ccc;border-radius:6px;font-size:14px}
 .form-row textarea{min-width:280px;min-height:40px}
 
+/* lists */
 .list{margin-top:18px}
 
-/* CARD */
+/* cards */
 .card{
   border:2px solid var(--card-border);
   background:#fff;
@@ -56,27 +64,51 @@ body{
 .card h3{margin:0 0 8px 0;font-size:18px}
 .card p{margin:4px 0;color:#333}
 
-/* status backgrounds (whole card) */
-.card.status-pending{background:var(--soft-red)}
-.card.status-inprogress{background:var(--soft-yellow)}
-.card.status-published{background:var(--soft-green)}
+/* whole-card status colors */
+.card.status-pending{background:var(--red)}
+.card.status-inprogress{background:var(--yellow)}
+.card.status-published{background:var(--green)}
 
-/* table schedule */
+/* schedule table */
 .table{width:100%;border-collapse:collapse;margin-top:12px}
 .table th,.table td{border:1px solid #ccc;padding:8px;text-align:left}
 .table input{width:100%;padding:6px;border:1px solid #bbb;border-radius:4px}
 
-/* buttons */
+/* done-row style */
+.row-done{background:#e6ffe6;opacity:0.8}
+
+/* stats */
+.stats-block {
+  margin-top: 20px;
+  padding: 15px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 0 8px rgba(0,0,0,0.06);
+}
+.stats-block h3 { font-size:18px; margin:14px 0 8px; }
+
+/* stats tables */
+.stats-table {
+  width:100%;
+  border-collapse:collapse;
+  margin-bottom:14px;
+  table-layout:fixed; /* important */
+}
+.stats-table th,.stats-table td {
+  padding:8px 10px;
+  border-bottom:1px solid #eee;
+  text-align:left;
+  word-wrap:break-word;
+}
+.stats-table th { background:#f7f7f7; font-weight:600; }
+
+/* small buttons */
 button{cursor:pointer}
 .card .btn-inline{margin-right:8px;padding:6px 10px;border:1px solid #000;background:#fff;border-radius:6px}
 
-.row-done {
-  opacity: 0.5;
-  background: #d4ffd4; /* мягкий зелёный */
-}
-
-/* small responsive */
+/* responsive */
 @media (max-width:700px){
   .form-row{flex-direction:column;align-items:stretch}
   .avatar{width:44px;height:44px}
+  .container{padding:10px}
 }
