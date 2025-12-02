@@ -297,6 +297,19 @@ function renderToday(){
   });
 }
 
+// Переключение между секциями
+document.querySelectorAll('.nav-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const section = btn.dataset.section;
+
+        document.querySelectorAll('.section').forEach(s => {
+            s.classList.remove('active');
+        });
+
+        document.getElementById(section).classList.add('active');
+    });
+});
+
 /* initial load */
 window.addEventListener('load', ()=> {
   sections.forEach(s=>s.classList.remove('active'));
