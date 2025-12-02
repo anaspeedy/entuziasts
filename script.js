@@ -195,6 +195,60 @@ statsRef.on('value', snap=>{
   renderStats(snap.exists() ? snap.val() : null);
 });
 
+/* ---------- STATISTICS: topic / time / score ---------- */
+
+/* topics from ideas */
+function renderTopicStats(ideas){
+  const counts = {};
+  ideas.forEach(i => counts[i.theme] = (counts[i.theme]||0) + 1);
+  let html = '<tr><th>Тема</th><th>Постов</th></tr>';
+  Object.entries(counts).forEach(([t,c]) => html += `<tr><td>${escapeHtml(t)}</td><td>${c}</td></tr>`);
+  document.getElementById('topicStats').innerHTML = html;
+}
+
+/* time stats from schedule */
+function renderTimeStatsFromSchedule(){
+  scheduleRef.once('value').then(snap=>{
+    const buckets = {"06:00–12:00":0,"12:00–18:00":0,"18:00–00:00":0,"00:00–06:00":0};
+    if(!snap.exists()){
+      document.getElementById('timeStats').innerHTML = '<tr><th>Слот</th><th>Публикаций</th></tr>';
+      return;
+    }
+    snap.forEach(c=>{
+      const it = c.val();
+      if(!it.time) return;
+      const h = parseInt(it.time.split(':')[0]);
+      if(h>=6 && h<12) buckets["06:00–12:00"]++;
+      else if(h>=12 && h<18) buckets["12:00–18:00"]++;
+      else if(h>=18 && h<24) buckets["18:00–00:00"]++;
+      else buckets["00:00–06:00"]++;
+    });
+    let html = '<tr><th>Временной слот</th><th>Публикаций</th></tr>';
+    Object.entries(buckets).forEach(([slot,cnt]) => html += `<tr><td>${slot}</td><td>${cnt}</td></tr>`);
+    document.getElementById('timeStats').innerHTML = html;
+  });
+}
+
+/* score */
+function renderScoreStats(statsArr){
+  let html = '<tr><th>Пост</th><th>Оценка</th><th>Эффективность</th></tr>';
+  statsArr.forEach(s=>{
+    if(!s.views || !s.likes) return;
+    const ratio = (s.likes / s.views) * 100;
+    const score = Math.min(10, Math.round((ratio/2)*10)/10);
+    let level='Средний';
+    if(score>=8) level='Вирусный';
+    else if(score>=5) level='Хороший';
+    else if(score<=3) level='Слабый';
+    html += `<tr><td>${escapeHtml(s.title)} (${escapeHtml(s.platform)})</td><td>${score}/10</td><td>${level}</td></tr>`;
+  });
+  document.getElementById('scoreStats').innerHTML = html;
+  }
+/* initial load */
+window.addEventListener('load', ()=> {
+  sections.forEach(s=>s.classList.remove('active'));
+  document.getElementById('ideas').classList.add('active');
+});
 // ---------------- UTIL ----------------
 function escapeHtml(text){
   if(!text && text!==0) return '';
