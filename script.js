@@ -129,6 +129,18 @@ function renderSchedule(data){
     scheduleBody.appendChild(tr);
   });
 }
+  // checkbox handler
+    const checkbox = tr.querySelector(".schedule-done");
+    checkbox.addEventListener("change", () => {
+      scheduleRef.child(id).update({ done: checkbox.checked });
+      tr.classList.toggle("row-done", checkbox.checked);
+    });
+
+    // delete button handled by delegated listener below
+  });
+}
+
+
 
 scheduleRef.on('value', snap=>{
   renderSchedule(snap.exists() ? snap.val() : null);
