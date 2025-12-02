@@ -1,4 +1,4 @@
-// ---------------- Firebase config (Realtime DB) ----------------
+/* ========== Firebase Realtime (config inserted) ========== */
 const firebaseConfig = {
   apiKey: "AIzaSyBRs2UN27aXvTGg7bV2wYDHCGH4u7mcqNg",
   authDomain: "apps-48f48.firebaseapp.com",
@@ -11,30 +11,37 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-// ---------------- UI — tabs ----------------
+/* refs */
+const ideasRef = db.ref('ideas');
+const scheduleRef = db.ref('schedule');
+const statsRef = db.ref('stats');
+
+/* UI references */
 const tabs = document.querySelectorAll('.nav-btn');
 const sections = document.querySelectorAll('.section');
+const ideaForm = document.getElementById('ideaForm');
+const ideasList = document.getElementById('ideasList');
+const scheduleForm = document.getElementById('scheduleForm');
+const scheduleBody = document.getElementById('scheduleBody');
+const statForm = document.getElementById('statForm');
+const todayList = document.getElementById('todayList');
+
+/* helpers */
+const statusLabelRU = { pending:'Отложено', inprogress:'В процессе', published:'Опубликовано' };
+const nextStatus = s => s==='pending' ? 'inprogress' : s==='inprogress' ? 'published' : 'pending';
+const safeKey = s => s.replace(/[.#$\[\]/]/g,'_');
+function escapeHtml(text){ if(text===undefined||text===null) return ''; return String(text).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+/* tabs */
 tabs.forEach(btn=>{
   btn.addEventListener('click', ()=> {
     sections.forEach(s=>s.classList.remove('active'));
-    document.getElementById(btn.dataset.section).classList.add('active');
+    const id = btn.dataset.section;
+    document.getElementById(id).classList.add('active');
   });
 });
 
-// ---------------- HELPERS ----------------
-const statusLabelRU = {
-  pending: 'Отложено',
-  inprogress: 'В процессе',
-  published: 'Опубликовано'
-};
-const nextStatus = s => s==='pending' ? 'inprogress' : s==='inprogress' ? 'published' : 'pending';
-const safeKey = s => s.replace(/[.#$\[\]/]/g,'_'); // для ключа недели
-
-// ---------------- IDEAS ----------------
-const ideaForm = document.getElementById('ideaForm');
-const ideasList = document.getElementById('ideasList');
-const ideasRef = db.ref('ideas');
-
+/* ---------- IDEAS ---------- */
 function renderIdeas(data){
   ideasList.innerHTML = '';
   if(!data) return;
@@ -57,7 +64,7 @@ function renderIdeas(data){
   });
 }
 
-// submit new idea
+/* add idea */
 ideaForm.addEventListener('submit', e=>{
   e.preventDefault();
   const newIdea = {
@@ -72,41 +79,43 @@ ideaForm.addEventListener('submit', e=>{
   ideaForm.reset();
 });
 
-// listen ideas
+/* listen ideas */
 ideasRef.on('value', snap=>{
   renderIdeas(snap.exists() ? snap.val() : null);
+
+  const arr = [];
+  if(snap.exists()) Object.keys(snap.val()).forEach(k => arr.push(snap.val()[k]));
+  renderTopicStats(arr);
+  renderToday(); // update today view when ideas change
 });
 
-// delegate idea buttons
+/* delegate idea actions */
 ideasList.addEventListener('click', e=>{
   const id = e.target.dataset.id;
   if(!id) return;
   if(e.target.classList.contains('delete-idea')){
-    db.ref('ideas/'+id).remove();
+    ideasRef.child(id).remove();
     return;
   }
   if(e.target.classList.contains('change-status')){
-    // get current and update to next
-    db.ref('ideas/'+id).once('value').then(s=>{
+    ideasRef.child(id).once('value').then(s=>{
       const cur = s.val().status || 'pending';
       const nxt = nextStatus(cur);
-      db.ref('ideas/'+id).update({status: nxt});
+      ideasRef.child(id).update({status: nxt});
     });
   }
 });
 
-// ---------------- SCHEDULE ----------------
-const scheduleForm = document.getElementById('scheduleForm');
-const scheduleBody = document.getElementById('scheduleBody');
-const scheduleRef = db.ref('schedule');
-
+/* ---------- SCHEDULE ---------- */
 scheduleForm.addEventListener('submit', e=>{
   e.preventDefault();
   const item = {
     date: document.getElementById('scheduleDate').value,
+    time: document.getElementById('scheduleTime').value || '',
     title: document.getElementById('scheduleTitle').value.trim(),
     theme: document.getElementById('scheduleTheme').value,
-    format: document.getElementById('scheduleFormat').value
+    format: document.getElementById('scheduleFormat').value,
+    done: false
   };
   if(!item.date || !item.title){ alert('Заполните дату и название'); return; }
   scheduleRef.push(item);
@@ -141,29 +150,28 @@ function renderSchedule(data) {
 
     scheduleBody.appendChild(tr);
 
-    // ОБРАБОТЧИК галочки
+    // checkbox handler
     const checkbox = tr.querySelector(".schedule-done");
     checkbox.addEventListener("change", () => {
-      firebase.database().ref("schedule/" + id).update({
-        done: checkbox.checked
-      });
+      scheduleRef.child(id).update({ done: checkbox.checked });
       tr.classList.toggle("row-done", checkbox.checked);
     });
+
+    // delete button handled by delegated listener below
   });
-}
 }
 
 scheduleRef.on('value', snap=>{
   renderSchedule(snap.exists() ? snap.val() : null);
+  renderTimeStatsFromSchedule();
 });
 
-// delegate edits & delete in schedule
+/* edits & delete */
 scheduleBody.addEventListener('input', e=>{
   const id = e.target.dataset.id;
   const field = e.target.dataset.field;
   if(!id || !field) return;
-  const value = e.target.value;
-  scheduleRef.child(id).update({ [field]: value });
+  scheduleRef.child(id).update({ [field]: e.target.value });
 });
 scheduleBody.addEventListener('click', e=>{
   if(e.target.classList.contains('delete-schedule')){
@@ -172,59 +180,125 @@ scheduleBody.addEventListener('click', e=>{
   }
 });
 
-// ---------------- STATS ----------------
-const statForm = document.getElementById('statForm');
-const statsList = document.getElementById('statsList');
-const statsRef = db.ref('stats');
-
+/* ---------- STATS ---------- */
 statForm.addEventListener('submit', e=>{
   e.preventDefault();
   const weekRaw = document.getElementById('statWeek').value.trim();
+  const title = document.getElementById('statTitle').value.trim() || '—';
   const platform = document.getElementById('statPlatform').value;
   const likes = parseInt(document.getElementById('statLikes').value) || 0;
   const comments = parseInt(document.getElementById('statComments').value) || 0;
   const views = parseInt(document.getElementById('statViews').value) || 0;
   if(!weekRaw){ alert('Введите неделю'); return; }
   const weekKey = safeKey(weekRaw);
-  // записываем под stats/<weekKey>/<platform>
-  statsRef.child(weekKey).child(platform).set({ likes, comments, views })
-    .then(()=> {
-      statForm.reset();
-    });
+  statsRef.child(weekKey).push({ title, platform, likes, comments, views })
+    .then(()=> statForm.reset());
 });
 
-// render stats: grouped by week
+/* render flat stats (debug/list) */
 function renderStats(data){
-  statsList.innerHTML = '';
-  if(!data) return;
-  Object.keys(data).forEach(weekKey=>{
-    const weekNode = data[weekKey];
-    const div = document.createElement('div');
-    div.className = 'card';
-    // display original week string by reversing safeKey (we stored raw week in first platform? to be safe show key)
-    const displayWeek = weekKey.replace(/_/g,' ');
-    div.innerHTML = `<h3>Неделя: ${displayWeek}</h3>`;
-    ['VK','TikTok','Instagram'].forEach(platform=>{
-      if(weekNode[platform]){
-        const p = weekNode[platform];
-        div.innerHTML += `<p><strong>${platform}:</strong> Лайки ${p.likes}, Комментарии ${p.comments}, Просмотры ${p.views}</p>`;
-      }
+  // optional, not used in UI, but safe
+}
+
+/* stats listener */
+statsRef.on('value', snap=>{
+  // flatten and render score table
+  const flat = [];
+  if(snap.exists()){
+    Object.keys(snap.val()).forEach(weekKey=>{
+      const weekNode = snap.val()[weekKey];
+      Object.keys(weekNode).forEach(k => flat.push(weekNode[k]));
     });
-    statsList.appendChild(div);
+  }
+  renderScoreStats(flat);
+});
+
+/* ---------- STATISTICS: topic / time / score ---------- */
+
+/* topics from ideas */
+function renderTopicStats(ideas){
+  const counts = {};
+  ideas.forEach(i => counts[i.theme] = (counts[i.theme]||0) + 1);
+  let html = '<tr><th>Тема</th><th>Постов</th></tr>';
+  Object.entries(counts).forEach(([t,c]) => html += `<tr><td>${escapeHtml(t)}</td><td>${c}</td></tr>`);
+  document.getElementById('topicStats').innerHTML = html;
+}
+
+/* time stats from schedule */
+function renderTimeStatsFromSchedule(){
+  scheduleRef.once('value').then(snap=>{
+    const buckets = {"06:00–12:00":0,"12:00–18:00":0,"18:00–00:00":0,"00:00–06:00":0};
+    if(!snap.exists()){
+      document.getElementById('timeStats').innerHTML = '<tr><th>Слот</th><th>Публикаций</th></tr>';
+      return;
+    }
+    snap.forEach(c=>{
+      const it = c.val();
+      if(!it.time) return;
+      const h = parseInt(it.time.split(':')[0]);
+      if(h>=6 && h<12) buckets["06:00–12:00"]++;
+      else if(h>=12 && h<18) buckets["12:00–18:00"]++;
+      else if(h>=18 && h<24) buckets["18:00–00:00"]++;
+      else buckets["00:00–06:00"]++;
+    });
+    let html = '<tr><th>Временной слот</th><th>Публикаций</th></tr>';
+    Object.entries(buckets).forEach(([slot,cnt]) => html += `<tr><td>${slot}</td><td>${cnt}</td></tr>`);
+    document.getElementById('timeStats').innerHTML = html;
   });
 }
 
-statsRef.on('value', snap=>{
-  renderStats(snap.exists() ? snap.val() : null);
-});
-
-// ---------------- UTIL ----------------
-function escapeHtml(text){
-  if(!text && text!==0) return '';
-  return String(text)
-    .replace(/&/g,'&amp;')
-    .replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;')
-    .replace(/"/g,'&quot;')
-    .replace(/'/g,'&#039;');
+/* score */
+function renderScoreStats(statsArr){
+  let html = '<tr><th>Пост</th><th>Оценка</th><th>Эффективность</th></tr>';
+  statsArr.forEach(s=>{
+    if(!s.views || !s.likes) return;
+    const ratio = (s.likes / s.views) * 100;
+    const score = Math.min(10, Math.round((ratio/2)*10)/10);
+    let level='Средний';
+    if(score>=8) level='Вирусный';
+    else if(score>=5) level='Хороший';
+    else if(score<=3) level='Слабый';
+    html += `<tr><td>${escapeHtml(s.title)} (${escapeHtml(s.platform)})</td><td>${score}/10</td><td>${level}</td></tr>`;
+  });
+  document.getElementById('scoreStats').innerHTML = html;
 }
+
+/* ---------- TODAY ---------- */
+function renderToday(){
+  todayList.innerHTML = '';
+
+  // ideas in process
+  ideasRef.once('value').then(snap=>{
+    if(snap.exists()){
+      snap.forEach(c=>{
+        const it = c.val();
+        if(it.status === 'inprogress'){
+          const div = document.createElement('div');
+          div.className = `card status-${it.status}`;
+          div.innerHTML = `<h3>${escapeHtml(it.title)}</h3><p>${escapeHtml(it.theme)} · ${escapeHtml(it.format)}</p>`;
+          todayList.appendChild(div);
+        }
+      });
+    }
+  });
+
+  // schedule for today
+  const today = new Date().toISOString().slice(0,10);
+  scheduleRef.orderByChild('date').equalTo(today).once('value').then(snap=>{
+    if(snap.exists()){
+      snap.forEach(c=>{
+        const it = c.val();
+        const div = document.createElement('div');
+        div.className = 'card';
+        div.innerHTML = `<h3>${escapeHtml(it.title)}</h3><p>${escapeHtml(it.time||'')}, ${escapeHtml(it.theme)} · ${escapeHtml(it.format)}</p>`;
+        todayList.appendChild(div);
+      });
+    }
+  });
+}
+
+/* initial load */
+window.addEventListener('load', ()=> {
+  sections.forEach(s=>s.classList.remove('active'));
+  document.getElementById('ideas').classList.add('active');
+});
