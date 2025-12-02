@@ -113,21 +113,44 @@ scheduleForm.addEventListener('submit', e=>{
   scheduleForm.reset();
 });
 
-function renderSchedule(data){
+function renderSchedule(data) {
   scheduleBody.innerHTML = '';
-  if(!data) return;
-  Object.keys(data).forEach(id=>{
+  if (!data) return;
+
+  Object.keys(data).forEach(id => {
     const it = data[id];
     const tr = document.createElement('tr');
+
+    tr.classList.toggle("row-done", it.done === true);
+
     tr.innerHTML = `
-      <td><input data-id="${id}" data-field="date" value="${escapeHtml(it.date)}"></td>
-      <td><input data-id="${id}" data-field="theme" value="${escapeHtml(it.theme)}"></td>
-      <td><input data-id="${id}" data-field="format" value="${escapeHtml(it.format)}"></td>
-      <td><input data-id="${id}" data-field="title" value="${escapeHtml(it.title)}"></td>
-      <td><button class="btn-inline delete-schedule" data-id="${id}">Удалить</button></td>
+      <td>${escapeHtml(it.date)}</td>
+      <td>${escapeHtml(it.time || "-")}</td>
+      <td>${escapeHtml(it.theme)}</td>
+      <td>${escapeHtml(it.format)}</td>
+      <td>${escapeHtml(it.title)}</td>
+
+      <td>
+        <input type="checkbox" class="schedule-done" data-id="${id}" ${it.done ? "checked" : ""}>
+      </td>
+
+      <td>
+        <button class="btn-inline delete-schedule" data-id="${id}">Удалить</button>
+      </td>
     `;
+
     scheduleBody.appendChild(tr);
+
+    // ОБРАБОТЧИК галочки
+    const checkbox = tr.querySelector(".schedule-done");
+    checkbox.addEventListener("change", () => {
+      firebase.database().ref("schedule/" + id).update({
+        done: checkbox.checked
+      });
+      tr.classList.toggle("row-done", checkbox.checked);
+    });
   });
+}
 }
 
 scheduleRef.on('value', snap=>{
