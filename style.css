@@ -70,6 +70,11 @@ body{
 button{cursor:pointer}
 .card .btn-inline{margin-right:8px;padding:6px 10px;border:1px solid #000;background:#fff;border-radius:6px}
 
+.row-done {
+  opacity: 0.5;
+  background: #d4ffd4; /* мягкий зелёный */
+}
+
 /* small responsive */
 @media (max-width:700px){
   .form-row{flex-direction:column;align-items:stretch}
