@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Энтузиасты — контент</title>
 
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="style.css">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#f5f5f5">
 
@@ -28,15 +28,10 @@
       <button class="nav-btn" data-section="ideas">Идеи</button>
       <button class="nav-btn" data-section="schedule">Расписание</button>
       <button class="nav-btn" data-section="stats">Статистика</button>
-      <button class="nav-btn" data-section="today">Сегодня</button>
     </nav>
   </header>
 
   <main class="container">
-    <section id="ideas" class="section active">
-<section id="schedule" class="section">
-<section id="stats" class="section">
-<section id="today" class="section">
     <!-- IDEAS -->
     <section id="ideas" class="section active">
       <h2>Идеи</h2>
@@ -77,7 +72,6 @@
 
       <form id="scheduleForm" class="form-row">
         <input type="date" id="scheduleDate" required>
-        <input type="time" id="scheduleTime" placeholder="Время (опционально)">
         <input id="scheduleTitle" placeholder="Название поста" required>
         <select id="scheduleTheme">
           <option>обучающий контент</option>
@@ -101,15 +95,7 @@
 
       <table id="scheduleTable" class="table">
         <thead>
-          <tr>
-            <th>Дата</th>
-            <th>Время</th>
-            <th>Тематика</th>
-            <th>Формат</th>
-            <th>Название</th>
-            <th>Выполнено</th>
-            <th>Действия</th>
-          </tr>
+          <tr><th>Дата</th><th>Тематика</th><th>Формат</th><th>Название</th><th>Действия</th></tr>
         </thead>
         <tbody id="scheduleBody"></tbody>
       </table>
@@ -121,7 +107,6 @@
 
       <form id="statForm" class="form-row">
         <input id="statWeek" placeholder="Неделя, напр. 01.12-07.12" required>
-        <input id="statTitle" placeholder="Название поста (для оценки)" >
         <select id="statPlatform">
           <option value="VK">VK</option>
           <option value="TikTok">TikTok</option>
@@ -133,24 +118,8 @@
         <button type="submit">Добавить статистику</button>
       </form>
 
-      <div class="stats-block">
-        <h3>Статистика по темам</h3>
-        <table id="topicStats" class="stats-table"></table>
-
-        <h3>Статистика по времени публикаций</h3>
-        <table id="timeStats" class="stats-table"></table>
-
-        <h3>Оценка эффективности постов</h3>
-        <table id="scoreStats" class="stats-table"></table>
-      </div>
+      <div id="statsList" class="list"></div>
     </section>
-
-    <!-- TODAY -->
-    <section id="today" class="section">
-      <h2>Сегодня</h2>
-      <div id="todayList" class="list"></div>
-    </section>
-
   </main>
 
   <script src="script.js"></script>
