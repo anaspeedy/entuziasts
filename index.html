@@ -95,7 +95,7 @@
 
       <table id="scheduleTable" class="table">
         <thead>
-          <tr><th>Дата</th><th>Тематика</th><th>Формат</th><th>Название</th><th>Действия</th></tr>
+          <tr><th>Дата</th><th>Тематика</th><th>Формат</th><th>Название</th><th>Действия</th><th>Выполнено</th></tr>
         </thead>
         <tbody id="scheduleBody"></tbody>
       </table>
@@ -117,6 +117,16 @@
         <input id="statViews" type="number" placeholder="Просмотры" min="0" required>
         <button type="submit">Добавить статистику</button>
       </form>
+        <div class="stats-block">
+        <h3>Статистика по темам</h3>
+        <table id="topicStats" class="stats-table"></table>
+
+        <h3>Статистика по времени публикаций</h3>
+        <table id="timeStats" class="stats-table"></table>
+
+        <h3>Оценка эффективности постов</h3>
+        <table id="scoreStats" class="stats-table"></table>
+    
 
       <div id="statsList" class="list"></div>
     </section>
