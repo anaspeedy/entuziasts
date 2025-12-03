@@ -121,6 +121,17 @@ scheduleForm.addEventListener('submit', e=>{
   scheduleRef.push(item);
   scheduleForm.reset();
 });
+sheduleBody.addEventListener('input', e=>{
+  const id = e.target.dataset.id;
+  const field =e.target.dataset.field;
+  if(!id||!field) return;
+  sheduleRef.child(id).update({ [field]: e.target.value});
+});
+const sheduleRef = db.ref('shedule');
+sheduleRef.on('value', snap =>{
+  renderShedule(snap.exists()? snap.val(): null;
+  renderTimeStatsFromShedule();
+});
 
 function renderSchedule(data) {
   scheduleBody.innerHTML = '';
