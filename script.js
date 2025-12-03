@@ -248,24 +248,23 @@ function renderTimeStatsFromSchedule(){
 }
 
 /* score */
-function renderScoreStats(statsArr){
-  let html = '<tr><th>Пост</th><th>Оценка</th><th>Эффективность</th></tr>';
-  statsArr.forEach(s=>{
-    if(!s.views || !s.likes) return;
-    const ratio = (s.likes / s.views) * 100;
-    const score = Math.min(10, Math.round((ratio/2)*10)/10);
-    let level='Средний';
-    if(score>=8) level='Вирусный';
-    else if(score>=5) level='Хороший';
-    else if(score<=3) level='Слабый';
-    html += `<tr><td>${escapeHtml(s.title)} (${escapeHtml(s.platform)})</td><td>${score}/10</td><td>${level}</td></tr>`;
-  });
-  document.getElementById('scoreStats').innerHTML = html;
-}
+function calculateScore(likes, comments, views){
+  if(!views || views < 1) return 0;
 
-/* ---------- TODAY ---------- */
-function renderToday(){
-  todayList.innerHTML = '';
+  // Engagement Rate
+  const er = (likes + comments * 2) / views; 
+  // комментарии считаются в 2 раза ценнее лайка
+
+  // Преобразование ER → шкала 0–10
+  // 0.05 (5%) = средний контент = 5/10
+  // 0.10 (10%) = очень хороший = 8/10
+  // 0.20 (20%) = вирусный = 10/10
+  let score = er * 50; 
+  // 0.20 * 50 = 10
+
+  if(score > 10) score = 10;
+  return Math.round(score * 10) / 10; // округление до 0.1
+}
 
   // ideas in process
   ideasRef.once('value').then(snap=>{
@@ -282,20 +281,7 @@ function renderToday(){
     }
   });
 
-  // schedule for today
-  const today = new Date().toISOString().slice(0,10);
-  scheduleRef.orderByChild('date').equalTo(today).once('value').then(snap=>{
-    if(snap.exists()){
-      snap.forEach(c=>{
-        const it = c.val();
-        const div = document.createElement('div');
-        div.className = 'card';
-        div.innerHTML = `<h3>${escapeHtml(it.title)}</h3><p>${escapeHtml(it.time||'')}, ${escapeHtml(it.theme)} · ${escapeHtml(it.format)}</p>`;
-        todayList.appendChild(div);
-      });
-    }
-  });
-}
+
 
 /* initial load */
 window.addEventListener('load', ()=> {
