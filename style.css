@@ -66,34 +66,6 @@ body{
 .table th,.table td{border:1px solid #ccc;padding:8px;text-align:left}
 .table input{width:100%;padding:6px;border:1px solid #bbb;border-radius:4px}
 
-/* done-row style */
-.row-done{background:#e6ffe6;opacity:0.8}
-
-/* stats */
-.stats-block {
-  margin-top: 20px;
-  padding: 15px;
-  background: #fff;
-  border-radius: 10px;
-  box-shadow: 0 0 8px rgba(0,0,0,0.06);
-}
-.stats-block h3 { font-size:18px; margin:14px 0 8px; }
-
-/* stats tables */
-.stats-table {
-  width:100%;
-  border-collapse:collapse;
-  margin-bottom:14px;
-  table-layout:fixed; /* important */
-}
-.stats-table th,.stats-table td {
-  padding:8px 10px;
-  border-bottom:1px solid #eee;
-  text-align:left;
-  word-wrap:break-word;
-}
-.stats-table th { background:#f7f7f7; font-weight:600; }
-
 /* buttons */
 button{cursor:pointer}
 .card .btn-inline{margin-right:8px;padding:6px 10px;border:1px solid #000;background:#fff;border-radius:6px}
